@@ -28,13 +28,17 @@ app.use(express.json());
 const corsOptions = {
   origin: function (origin, callback) {
     const allowedOrigins = process.env.ALLOWED_ORIGINS ? 
-      process.env.ALLOWED_ORIGINS.split(',') : 
-      ['http://localhost:5173']; // Default to local development
+      process.env.ALLOWED_ORIGINS.split(',').map(url => url.trim()) : 
+      ['http://localhost:5173', 'http://localhost:3000']; // Default to local development
     
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+    // Remove trailing slashes for comparison
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    const normalizedAllowedOrigins = allowedOrigins.map(url => url.replace(/\/$/, ''));
+    
+    if (normalizedAllowedOrigins.includes(normalizedOrigin) || normalizedAllowedOrigins.includes('*')) {
       callback(null, true);
     } else {
       logger.warn(`CORS blocked for origin: ${origin}`);
